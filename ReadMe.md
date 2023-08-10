@@ -24,8 +24,3 @@
     ```bash
     ansible-playbook -i inventory playbook.yml
     ```
-7. Verify that the database was created by connecting to the server via ssh and running the following command:
-
-      ```bash
-      psql -U <user> -d <database> -c "SELECT * FROM users;"
-      ```
