@@ -1,0 +1,76 @@
+- name: create database for postgresql
+  postgresql_db:
+    state: present
+    name: "{{ db_name }}"
+  become: true
+  become_user: postgres
+
+
+- name: create a user
+  postgresql_user:
+    db: "{{ db_name }}"
+    state: present
+    name: "{{ db_user }}"
+    password: "{{ db_password }}"
+  become: true
+  become_user: postgres
+
+
+- name: grant privileges to the created database
+  postgresql_privs:
+      type: database
+      db: "{{ db_name }}"
+      roles: "{{ db_user }}"
+      grant_option: false
+      fail_on_role: true
+      privs: ALL
+  become: true
+  become_user: postgres
+
+
+- name: check if table exists
+  community.postgresql.postgresql_query:
+    db: "{{ db_name }}"
+    login_host: 127.0.0.1
+    login_user: "{{ db_user }}"
+    login_password: "{{ db_password }}"
+    query: "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'users');"
+  register: result
+
+
+- name: upload seed.sql to the remote host
+  copy:
+    src: "{{seed_file_path}}"
+    dest: /tmp/seed.sql
+    mode: 0644
+
+
+- name: seed database with seed.sql only if table does not exist
+  when: result.query_result[0].exists != true
+  community.postgresql.postgresql_script:
+    db: "{{ db_name }}"
+    login_host: 127.0.0.1
+    login_user: "{{ db_user }}"
+    login_password: "{{ db_password }}"
+    path: /tmp/seed.sql
+
+
+- name: delete seed.sql from the remote host
+  file:
+    path: /tmp/seed.sql
+    state: absent
+
+
+- name: verify that database is seeded
+  community.postgresql.postgresql_query:
+    db: "{{ db_name }}"
+    login_host: 127.0.0.1
+    login_user: "{{ db_user }}"
+    login_password: "{{ db_password }}"
+    query: "SELECT * FROM users;"
+  register: result
+
+
+- name: print result
+  debug:
+    var: result.query_result

@@ -4,9 +4,7 @@
   vars_files:
     - vars.yml
 
-  tasks:
+  pre_tasks:
     - import_tasks: tasks/install-postgres.yml
-
-  handlers:
-    - name: restart postgres
-      service: name=postgresql state=restarted
+  tasks:
+    - import_tasks: tasks/configure-postgres.yml
