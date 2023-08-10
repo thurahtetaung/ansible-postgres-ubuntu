@@ -1,0 +1,12 @@
+- hosts: all
+  become: true
+
+  vars_files:
+    - vars.yml
+
+  tasks:
+    - import_tasks: tasks/install-postgres.yml
+
+  handlers:
+    - name: restart postgres
+      service: name=postgresql state=restarted

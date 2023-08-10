@@ -1,0 +1,6 @@
+# Replace the values with your own
+
+db_user: thura
+db_password: 123456
+db_name: test_db
+seed_file_path: /Users/thurahtetaung/ansible-tutorial/seed.sql
